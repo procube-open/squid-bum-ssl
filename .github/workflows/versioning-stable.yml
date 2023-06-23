@@ -38,3 +38,5 @@ jobs:
           npm i -g release-it@${RELEASE_IT_VERSION}
           npm i -g @release-it/bumper@${BUMPER_VERSION}
           release-it -- patch --ci
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
