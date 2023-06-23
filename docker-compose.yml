@@ -1,0 +1,13 @@
+version: '2'
+services:
+  cached-proxy:
+    # image: cached_proxy:latest
+    build: .
+    ports:
+      - "3128:3128"
+    volumes:
+      - /Users/mitsuru/Projects/hive-builder/examples/pdns/.hive/private/ca/cacert.pem:/etc/squid/cert/bump.crt
+      - /Users/mitsuru/Projects/hive-builder/examples/pdns/.hive/private/ca/cakey.pem:/etc/squid/cert/bump.key
+      - squid_cache:/var/spool/squid
+volumes:
+  squid_cache:
