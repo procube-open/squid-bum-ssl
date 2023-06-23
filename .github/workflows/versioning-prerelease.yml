@@ -41,8 +41,8 @@ jobs:
 
       - name: Set releaser settings
         run: |
-          git config --global user.name ${{ env.BUILDER_GITHUB_USER }}
-          git config --global user.email ${{ env.BUILDER_GITHUB_EMAIL }}
+          git config --global user.name ${{ vars.BUILDER_GITHUB_USER }}
+          git config --global user.email ${{ vars.BUILDER_GITHUB_EMAIL }}
 
       - name: Update prerelease version
         id: prerelease

@@ -29,8 +29,8 @@ jobs:
           node-version: '16'
       - name: Set releaser settings
         run: |
-          git config --global user.name ${{ env.BUILDER_GITHUB_USER }}
-          git config --global user.email ${{ env.BUILDER_GITHUB_EMAIL }}
+          git config --global user.name ${{ vars.BUILDER_GITHUB_USER }}
+          git config --global user.email ${{ vars.BUILDER_GITHUB_EMAIL }}
       - name: Patch release
         # バージョン更新コミットでない場合（ループ抑止）はビルドバージョンを更新する
         if: "!contains(toJSON(github.event.commits.*.message), '[automate_versioning] Release')"
