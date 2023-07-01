@@ -1,0 +1,13 @@
+--- squid-5.7/src/http.cc	2022-09-05 13:06:48
++++ squid-5.7/src/http_new.cc	2023-06-25 16:20:14
+@@ -603,9 +603,8 @@
+ httpMakeVaryMark(HttpRequest * request, HttpReply const * reply)
+ {
+     SBuf vstr;
+-    String vary;
++    String vary("Accept,AcceptEncoding");
+ 
+-    vary = reply->header.getList(Http::HdrType::VARY);
+     assembleVaryKey(vary, vstr, *request);
+ 
+ #if X_ACCELERATOR_VARY
