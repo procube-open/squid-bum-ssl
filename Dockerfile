@@ -39,6 +39,8 @@ ENV requires=" \
     "
 ENV prefix="/usr"
 
+COPY patch_for_vary_header /
+
 RUN echo "deb-src http://deb.debian.org/debian bullseye main" > /etc/apt/sources.list.d/source.list \
  && echo "deb-src http://deb.debian.org/debian bullseye-updates main" >> /etc/apt/sources.list.d/source.list \
 #  && echo "deb-src http://security.debian.org bullseye/updates main" >> /etc/apt/sources.list.d/source.list \
@@ -50,7 +52,10 @@ RUN echo "deb-src http://deb.debian.org/debian bullseye main" > /etc/apt/sources
  && curl -o /build/squid-source.tar.gz ${SOURCEURL} \
  && cd /build \
  && tar --strip=1 -xf squid-source.tar.gz \
+ && patch -p 1 < /patch_for_vary_header \
  && ./configure --with-openssl \
+        --enable-ssl \
+        --enable-ssl-crtd \
         --build=x86_64-linux-gnu \
         --prefix=/usr \
         --includedir=${prefix}/include \
@@ -105,14 +110,6 @@ RUN echo "deb-src http://deb.debian.org/debian bullseye main" > /etc/apt/sources
         --with-systemd \
         --with-gnutls \
         --enable-http-violations \
-#         build_alias=x86_64-linux-gnu \
-#         build_alias=x86_64-linux-gnu \
-#         CFLAGS=-g -O2 -ffile-prefix-map=/build/squid-Zv72wY/squid-5.6=. -flto=auto -ffat-lto-objects -flto=auto -ffat-lto-objects -fstack-protector-strong -Wformat -Werror=format-security -Wno-error=deprecated-declarations \
-#         LDFLAGS=-Wl,-Bsymbolic-functions -flto=auto -ffat-lto-objects -flto=auto -Wl,-z,relro -Wl,-z,now \
-#         CPPFLAGS=-Wdate-time -D_FORTIFY_SOURCE=2 \
-#         CXXFLAGS=-g -O2 -ffile-prefix-map=/build/squid-Zv72wY/squid-5.6=. -flto=auto -ffat-lto-objects -flto=auto -ffat-lto-objects -fstack-protector-strong -Wformat -Werror=format-security -Wno-error=deprecated-declarations \
-
-
  && make -j$(awk '/^processor/{n+=1}END{print n}' /proc/cpuinfo) \
  && checkinstall -y -D --install=no --fstrans=no --requires="${requires}" \
         --pkgname="squid"
@@ -127,7 +124,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 COPY --from=builder /build/squid_0-1_amd64.deb /tmp/squid.deb
 
 RUN apt update \
- && apt -qy install curl \
+ && apt -qy install curl vim \
 #  後ほど修正
  && curl -o /tmp/libnettle6.deb http://security.ubuntu.com/ubuntu/pool/main/n/nettle/libnettle6_3.2-1_amd64.deb \
  && apt -qy install libssl1.1 /tmp/squid.deb /tmp/libnettle6.deb \
@@ -135,14 +132,12 @@ RUN apt update \
 RUN openssl dhparam -outform PEM -out /etc/squid/bump_dhparam.pem 2048
 
 COPY ./docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-COPY ./squid.conf /etc/squid.conf
 
+# https://webnetforce.net/squid-ssl-bump/
 RUN mkdir /var/spool/squid
 
-RUN mkdir /var/log/squid
-
-# ファイルの所有者を変更
-RUN chown nobody:nogroup /var/spool/squid /var/log/squid
+RUN mkdir /var/log/squid /var/lib/squid
+RUN chown nobody:nogroup /var/spool/squid /var/log/squid /var/lib/squid
 
 # 権限追加
 RUN chmod 4755 /usr/lib/squid/pinger
@@ -155,10 +150,13 @@ RUN chmod 666 /var/log/squid/store.log
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 RUN chmod 777 /var/spool/squid
 
+RUN /usr/lib/squid/security_file_certgen -c -s /var/lib/squid/ssl_db -M 40MB
+RUN chmod 777 -R /var/lib/squid/ssl_db
 RUN echo cache_dir ufs /var/spool/squid 100 16 256 > /tmp/squid.conf
 RUN squid -z -s -N -f /tmp/squid.conf
 
+COPY ./squid.conf /etc/squid/squid.conf
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
-CMD ["squid", "-NYC", "-f", "/etc/squid.conf"]
+CMD ["squid", "-NYC"]
 
