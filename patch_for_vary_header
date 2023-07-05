@@ -11,8 +11,8 @@
      assembleVaryKey(vary, vstr, *request);
  
  #if X_ACCELERATOR_VARY
---- src/cache_cf.cc	2023-07-05 17:14:39
-+++ src/cache_cf_new.cc	2023-07-05 17:22:37
+--- squid-5.7/src/cache_cf.cc	2023-07-05 17:14:39
++++ squid-5.7/src/cache_cf_new.cc	2023-07-05 17:22:37
 @@ -2825,10 +2825,6 @@
      if (i < 0) {
          debugs(3, DBG_IMPORTANT, "WARNING: refresh_pattern minimum age negative. Cropped back to zero.");
