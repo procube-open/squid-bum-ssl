@@ -11,3 +11,27 @@
      assembleVaryKey(vary, vstr, *request);
  
  #if X_ACCELERATOR_VARY
+--- squid-5.7/src/cache_cf.cc	2023-07-05 17:14:39
++++ squid-5.7/src/cache_cf_new.cc	2023-07-05 17:22:37
+@@ -2825,10 +2825,6 @@
+     if (i < 0) {
+         debugs(3, DBG_IMPORTANT, "WARNING: refresh_pattern minimum age negative. Cropped back to zero.");
+         i = 0;
+-    }
+-    if (i > 60*24*365) {
+-        debugs(3, DBG_IMPORTANT, "WARNING: refresh_pattern minimum age too high. Cropped back to 1 year.");
+-        i = 60*24*365;
+     }
+ 
+     min = (time_t) (i * 60);    /* convert minutes to seconds */
+@@ -2841,10 +2837,6 @@
+     if (i < 0) {
+         debugs(3, DBG_IMPORTANT, "WARNING: refresh_pattern maximum age negative. Cropped back to zero.");
+         i = 0;
+-    }
+-    if (i > 60*24*365) {
+-        debugs(3, DBG_IMPORTANT, "WARNING: refresh_pattern maximum age too high. Cropped back to 1 year.");
+-        i = 60*24*365;
+     }
+ 
+     max = (time_t) (i * 60);    /* convert minutes to seconds */
